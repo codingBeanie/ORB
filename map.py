@@ -2,6 +2,7 @@ import numpy as np
 from PIL import Image
 from PIL.Image import Image as PILImage
 import config
+import entities
 
 
 class Map:
@@ -9,8 +10,9 @@ class Map:
         self.name: str = map_name
         self.image: PILImage | None = None
         self.image_data: np.ndarray | None = None
-        self.tiles: np.ndarray | None = None
-        self.dimensions: tuple[int, int] | None = None
+        self.image_dimensions: tuple[int, int] | None = None
+
+        self.fields: list[entities.Field] = []
 
         self.load_image()
         self.extract_image_data()
@@ -25,38 +27,23 @@ class Map:
 
     def extract_image_data(self):
         self.image_data = np.array(self.image)
-        self.tiles = np.empty(self.image_data.shape[:2], dtype=object)
-        self.dimensions = (self.image_data.shape[1], self.image_data.shape[0])
+        self.tiles = np.empty(self.image_data.shape[:2], dtype=entities.Tile)
+        self.image_dimensions = (self.image_data.shape[1], self.image_data.shape[0])
+        self.fields = []
 
-        for x in range(self.image_data.shape[1]):
-            for y in range(self.image_data.shape[0]):
+        height, width = self.image_data.shape[:2]
+
+        for y in range(height):
+            for x in range(width):
                 pixel_rgb: np.ndarray = self.image_data[y, x]
+                tile: entities.Tile = entities.get_tile_by_color(tuple(pixel_rgb))
+                field = entities.Field(x=x, y=height - 1 - y, tile=tile)
+                self.fields.append(field)
 
-                tile_type: str | None = config.get_name_by_import_color(
-                    (int(pixel_rgb[0]), int(pixel_rgb[1]), int(pixel_rgb[2]))
-                )
-                if tile_type:
-                    self.tiles[y, x] = tile_type
-                else:
-                    self.tiles[y, x] = "???"
-
-    def get_spawning_positions(self, team_code: str) -> list[tuple[int, int]]:
-        """Get all spawn positions for a specific team"""
-        if self.tiles is None:
-            return []
-
-        positions = np.argwhere(self.tiles == team_code)
-        print(positions)
-        return [(pos[1], pos[0]) for pos in positions]
-
-    def get_meta_orb_spawn_position(self) -> tuple[int, int]:
-        """Get the spawn position for the Meta Orb"""
-        if self.tiles is None:
-            return (0, 0)
-
-        positions = np.argwhere(self.tiles == "ORB_SPAWN")
-        if positions.size == 0:
-            return (0, 0)  # Default position if none found
-
-        pos = positions[0]
-        return (pos[1], pos[0])
+    def get_coordinates_by_tile_name(self, tile_name: str) -> list[tuple[int, int]]:
+        """Get all coordinates of fields with a specific tile name"""
+        positions = []
+        for field in self.fields:
+            if field.tile.name == tile_name:
+                positions.append((field.x, field.y))
+        return positions

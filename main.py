@@ -15,6 +15,6 @@ for player in config.PLAYERS_BLUE:
     players_blue.append(Player(player, "BLUE"))
 
 game = Game(test_map_name, players_red, players_blue)
-game.spawn_players()
-game.spawn_orbs()
+# game.spawn_players()
+# game.spawn_orbs()
 game.run_game_loop()

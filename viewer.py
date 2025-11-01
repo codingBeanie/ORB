@@ -2,13 +2,14 @@ import arcade
 from map import Map
 import time
 import config
+import entities
 
 
 class MapViewer(arcade.Window):
     def __init__(self, game):
         self.game = game
-        self.map: Map = game.map
-        self.dimensions: tuple[int, int] = self.map.dimensions or (0, 0)
+        self.fields: list[entities.Field] = game.map.fields
+        self.dimensions: tuple[int, int] = game.map.image_dimensions or (0, 0)
         self.tile_size: int = config.TILE_SIZE
 
         # Map area
@@ -56,118 +57,31 @@ class MapViewer(arcade.Window):
         self.draw_message_box()
 
     def draw_map(self):
-        if self.map.tiles is None:
+        if self.fields is None:
             return
 
-        for y in range(self.map.tiles.shape[0]):
-            for x in range(self.map.tiles.shape[1]):
-                tile_type: str = self.map.tiles[y, x]
-                color = config.COLORS[tile_type]["display_color"]
+        for field in self.fields:
+            pixel_x: int = field.x * self.tile_size
+            pixel_y: int = field.y * self.tile_size + self.message_box_height
 
-                pixel_x: int = x * self.tile_size
-                # Map wird oberhalb der Message Box gezeichnet
-                pixel_y: int = (
-                    self.map.tiles.shape[0] - 1 - y
-                ) * self.tile_size + self.message_box_height
-
-                # Draw filled rectangle directly
-                arcade.draw_lbwh_rectangle_filled(
-                    pixel_x,  # Left
-                    pixel_y,  # Bottom
-                    self.tile_size - 1,  # Width (with 1px border)
-                    self.tile_size - 1,  # Height (with 1px border)
-                    color,
-                )
+            # Draw filled rectangle directly
+            arcade.draw_lbwh_rectangle_filled(
+                pixel_x,  # Left
+                pixel_y,  # Bottom
+                self.tile_size - 1,  # Width (with 1px border)
+                self.tile_size - 1,  # Height (with 1px border)
+                field.tile.display_color or (128, 128, 128),  # Default gray if None
+            )
 
     def draw_players(self):
-        # Draw players if any (optional)
-        if self.map.tiles is None:
-            return
-
-        player_position_data = self.game.get_player_positions()
-
         # Draw players
-        for player in player_position_data:
-            if player["team"] == "RED":
-                pixel_x = (
-                    player["position"][0] * self.tile_size + self.tile_size // 2
-                )  # Center X
-                pixel_y = (
-                    (self.map.tiles.shape[0] - 1 - player["position"][1])
-                    * self.tile_size
-                    + self.tile_size // 2
-                    + self.message_box_height
-                )  # Center Y + message box offset
-                arcade.draw_circle_filled(
-                    pixel_x,
-                    pixel_y,
-                    self.tile_size // 3,
-                    config.COLORS["RED_PLAYER"]["display_color"],  # Red player color
-                )
-                # Draw player name above the bubble
-                arcade.draw_text(
-                    player["name"],
-                    pixel_x,
-                    pixel_y + self.tile_size // 2,  # Above the bubble
-                    arcade.color.WHITE,
-                    font_size=max(8, self.tile_size // 4),  # Small font, minimum 8px
-                    anchor_x="center",
-                    anchor_y="bottom",
-                )
-            elif player["team"] == "BLU":
-                pixel_x = (
-                    player["position"][0] * self.tile_size + self.tile_size // 2
-                )  # Center X
-                pixel_y = (
-                    (self.map.tiles.shape[0] - 1 - player["position"][1])
-                    * self.tile_size
-                    + self.tile_size // 2
-                    + self.message_box_height
-                )  # Center Y + message box offset
-                arcade.draw_circle_filled(
-                    pixel_x,
-                    pixel_y,
-                    self.tile_size // 3,
-                    config.COLORS["BLUE_PLAYER"]["display_color"],  # Blue player color
-                )
-                # Draw player name above the bubble
-                arcade.draw_text(
-                    player["name"],
-                    pixel_x,
-                    pixel_y + self.tile_size // 2,  # Above the bubble
-                    arcade.color.WHITE,
-                    font_size=max(8, self.tile_size // 4),  # Small font, minimum 8px
-                    anchor_x="center",
-                    anchor_y="bottom",
-                )
+        if self.fields is None:
+            return
+        pass
 
     def draw_meta_orb(self):
         """Draw the Meta Orb on the map"""
-        if not hasattr(self.game, "meta_orb"):
-            return
-
-        if self.map.tiles is None:
-            return
-
-        meta_orb = self.game.meta_orb
-        pixel_x = meta_orb.position[0] * self.tile_size + self.tile_size // 2
-        pixel_y = (
-            (self.map.tiles.shape[0] - 1 - meta_orb.position[1]) * self.tile_size
-            + self.tile_size // 2
-            + self.message_box_height
-        )
-
-        # Draw Meta Orb as a diamond/rhombus shape
-        half_size = self.tile_size // 4
-
-        # Diamond points: top, right, bottom, left
-        points = [
-            (pixel_x, pixel_y + half_size),  # Top
-            (pixel_x + half_size, pixel_y),  # Right
-            (pixel_x, pixel_y - half_size),  # Bottom
-            (pixel_x - half_size, pixel_y),  # Left
-        ]
-        arcade.draw_polygon_filled(points, config.COLORS["META_ORB"]["display_color"])
+        pass
 
     def draw_message_box(self):
         """Draw the message box at the bottom of the screen"""
