@@ -77,11 +77,52 @@ class MapViewer(arcade.Window):
         # Draw players
         if self.fields is None:
             return
-        pass
+        for player in self.game.player_list:
+            pixel_x: int = player.position[0] * self.tile_size
+            pixel_y: int = player.position[1] * self.tile_size + self.message_box_height
+            team_color = entities.get_color_by_game_object_name(
+                "RED_PLAYER" if player.team == "RED" else "BLUE_PLAYER"
+            )
+            # Draw filled rectangle directly
+            arcade.draw_circle_filled(
+                pixel_x + self.tile_size // 2,  # Center X
+                pixel_y + self.tile_size // 2,  # Center Y
+                self.tile_size // 3,  # Radius
+                team_color,  # Player color
+            )
+            # Draw player name
+            arcade.draw_text(
+                player.name,
+                pixel_x + self.tile_size // 2,
+                pixel_y - 1,
+                arcade.color.WHITE,
+                font_size=config.PLAYER_TAG_SIZE,
+                anchor_x="center",
+            )
 
     def draw_meta_orb(self):
         """Draw the Meta Orb on the map"""
-        pass
+        if self.fields is None:
+            return
+        orb_position = self.game.map.get_coordinates_by_tile_name("ORB_SPAWN")[0]
+        pixel_x = orb_position[0] * self.tile_size
+        pixel_y = orb_position[1] * self.tile_size + self.message_box_height
+        color = entities.get_color_by_game_object_name("META_ORB")
+
+        arcade.draw_circle_filled(
+            pixel_x + self.tile_size // 2,
+            pixel_y + self.tile_size // 2,
+            self.tile_size // 3,
+            color,
+        )
+        # Draw orb border
+        arcade.draw_circle_outline(
+            pixel_x + self.tile_size // 2,
+            pixel_y + self.tile_size // 2,
+            self.tile_size // 3,
+            arcade.color.WHITE,
+            3,  # Border thickness
+        )
 
     def draw_message_box(self):
         """Draw the message box at the bottom of the screen"""

@@ -45,3 +45,11 @@ def get_tile_by_color(color: tuple[int, int, int]) -> Tile:
         if tile.import_color == color:
             return tile
     return TILES[-1]
+
+
+def get_color_by_game_object_name(name: str) -> tuple[int, int, int]:
+    """Get the display color of a GameObject by its name"""
+    for obj in GAME_OBJECTS:
+        if obj.name == name:
+            return obj.display_color
+    return (128, 128, 128)  # Default gray if not found
