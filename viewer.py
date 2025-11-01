@@ -1,40 +1,23 @@
 import arcade
 from map import Map
 import time
-
-# Colors for rendering
-TILE_COLORS = {
-    "WAL": (50, 50, 50),
-    "FLR": (200, 200, 200),
-    "ORS": (118, 66, 138),
-    "ORB": (130, 80, 200),  # META-ORB
-    "RED": (172, 50, 50),
-    "BLU": (99, 155, 255),
-    "RPL": (255, 0, 0),  # Red Player
-    "BPL": (0, 0, 255),  # Blue Player
-    "???": (255, 0, 255),
-}
-
-
-MESSAGE_BOX_HEIGHT = 120
-MESSAGE_BOX_MARGIN = 10
-MAX_MESSAGES = 6
+import config
 
 
 class MapViewer(arcade.Window):
-    def __init__(self, game, tile_size: int = 20, tick_delay: float = 0.2):
+    def __init__(self, game):
         self.game = game
         self.map: Map = game.map
         self.dimensions: tuple[int, int] = self.map.dimensions or (0, 0)
-        self.tile_size: int = tile_size
+        self.tile_size: int = config.TILE_SIZE
 
         # Map area
         self.map_width: int = int(self.dimensions[0] * self.tile_size)
         self.map_height: int = int(self.dimensions[1] * self.tile_size)
 
         # Message box area
-        self.message_box_height: int = MESSAGE_BOX_HEIGHT
-        self.message_box_margin: int = MESSAGE_BOX_MARGIN
+        self.message_box_height: int = config.MESSAGE_BOX_HEIGHT
+        self.message_box_margin: int = config.MESSAGE_BOX_MARGIN
 
         # Total window size
         width: int = self.map_width
@@ -45,11 +28,11 @@ class MapViewer(arcade.Window):
 
         # Message system
         self.messages: list[str] = []
-        self.max_messages: int = MAX_MESSAGES  # Maximum visible messages
+        self.max_messages: int = config.MAX_MESSAGES  # Maximum visible messages
 
         # Timing system (delta-time based, non-blocking)
         self.tick_timer: float = 0.0
-        self.tick_delay: float = tick_delay
+        self.tick_delay: float = config.TICK_DELAY
 
     def start(self):
         arcade.run()
@@ -79,7 +62,7 @@ class MapViewer(arcade.Window):
         for y in range(self.map.tiles.shape[0]):
             for x in range(self.map.tiles.shape[1]):
                 tile_type: str = self.map.tiles[y, x]
-                color = TILE_COLORS.get(tile_type, (255, 0, 255))
+                color = config.COLORS[tile_type]["display_color"]
 
                 pixel_x: int = x * self.tile_size
                 # Map wird oberhalb der Message Box gezeichnet
@@ -119,7 +102,7 @@ class MapViewer(arcade.Window):
                     pixel_x,
                     pixel_y,
                     self.tile_size // 3,
-                    TILE_COLORS["RPL"],  # Red player color
+                    config.COLORS["RED_PLAYER"]["display_color"],  # Red player color
                 )
                 # Draw player name above the bubble
                 arcade.draw_text(
@@ -145,7 +128,7 @@ class MapViewer(arcade.Window):
                     pixel_x,
                     pixel_y,
                     self.tile_size // 3,
-                    TILE_COLORS["BPL"],  # Blue player color
+                    config.COLORS["BLUE_PLAYER"]["display_color"],  # Blue player color
                 )
                 # Draw player name above the bubble
                 arcade.draw_text(
@@ -184,7 +167,7 @@ class MapViewer(arcade.Window):
             (pixel_x, pixel_y - half_size),  # Bottom
             (pixel_x - half_size, pixel_y),  # Left
         ]
-        arcade.draw_polygon_filled(points, TILE_COLORS["ORB"])
+        arcade.draw_polygon_filled(points, config.COLORS["META_ORB"]["display_color"])
 
     def draw_message_box(self):
         """Draw the message box at the bottom of the screen"""

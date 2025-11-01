@@ -1,15 +1,7 @@
 import numpy as np
 from PIL import Image
 from PIL.Image import Image as PILImage
-
-SOURCE_FOLDER: str = "assets/maps/"
-COLOR_MAPPING: dict[tuple[int, int, int], str] = {
-    (0, 0, 0): "WAL",  # WALL
-    (255, 255, 255): "FLR",  # FLOOR
-    (118, 66, 138): "ORS",  # ORB SPAWN
-    (172, 50, 50): "RED",  # START RED
-    (99, 155, 255): "BLU",  # START BLUE
-}
+import config
 
 
 class Map:
@@ -25,21 +17,24 @@ class Map:
 
     def load_image(self):
         try:
-            self.image = Image.open(SOURCE_FOLDER + self.name + ".png")
+            self.image = Image.open(config.SOURCE_FOLDER + self.name + ".png")
         except FileNotFoundError:
             raise FileNotFoundError(
-                f"Map image for '{self.name}' not found in {SOURCE_FOLDER}."
+                f"Map image for '{self.name}' not found in {config.SOURCE_FOLDER}."
             )
 
     def extract_image_data(self):
         self.image_data = np.array(self.image)
-        self.tiles = np.zeros(self.image_data.shape[:2], dtype="U3")
+        self.tiles = np.empty(self.image_data.shape[:2], dtype=object)
         self.dimensions = (self.image_data.shape[1], self.image_data.shape[0])
 
         for x in range(self.image_data.shape[1]):
             for y in range(self.image_data.shape[0]):
                 pixel_rgb: np.ndarray = self.image_data[y, x]
-                tile_type: str | None = COLOR_MAPPING.get(tuple(pixel_rgb))
+
+                tile_type: str | None = config.get_name_by_import_color(
+                    (int(pixel_rgb[0]), int(pixel_rgb[1]), int(pixel_rgb[2]))
+                )
                 if tile_type:
                     self.tiles[y, x] = tile_type
                 else:
@@ -59,7 +54,7 @@ class Map:
         if self.tiles is None:
             return (0, 0)
 
-        positions = np.argwhere(self.tiles == "ORS")
+        positions = np.argwhere(self.tiles == "ORB_SPAWN")
         if positions.size == 0:
             return (0, 0)  # Default position if none found
 

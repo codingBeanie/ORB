@@ -2,20 +2,19 @@ from map import Map
 from player import Player
 from viewer import MapViewer
 from meta_orb import MetaOrb
-import time
-import arcade
-
-TICK_DELAY = 0.1
-MAX_TICKS = 100
+import config
 
 
 class Game:
     def __init__(
-        self, map_name: str, players_red: list = [Player], players_blue: list = [Player]
+        self,
+        map_name: str,
+        players_red: list[Player] | None = None,
+        players_blue: list[Player] | None = None,
     ):
         self.map = Map(map_name)
-        self.players_red = players_red
-        self.players_blue = players_blue
+        self.players_red = players_red or []
+        self.players_blue = players_blue or []
         self.running = False
         self.tick = 0
         self.score_red = 0
@@ -24,7 +23,7 @@ class Game:
     def run_game_loop(self):
         self.running = True
         # Create viewer and pass self - viewer will call process_tick()
-        self.viewer = MapViewer(self, tile_size=30, tick_delay=TICK_DELAY)
+        self.viewer = MapViewer(self)
         self.viewer.start()
 
     def process_tick(self):
@@ -33,7 +32,7 @@ class Game:
         if not self.running:
             return
 
-        if self.tick > MAX_TICKS and self.running:
+        if self.tick > config.MAX_TICKS and self.running:
             self.running = False
             if hasattr(self, "viewer"):
                 self.viewer.add_message("Game finished!")
@@ -43,21 +42,23 @@ class Game:
         if hasattr(self, "viewer"):
             self.viewer.add_message(f"Tick {self.tick}: Game continues...")
 
-        # Here you can add all your game logic:
-        # - Process player actions
-        # - Update game state
-        # - Check win conditions
-        # - etc.
+        # iterate players and give them context
+        for player in self.players:
+            pass
 
     def spawn_players(self):
-        red_spawns = self.map.get_spawning_positions("RED")
-        blue_spawns = self.map.get_spawning_positions("BLU")
+        red_spawns = self.map.get_spawning_positions("RED_SPAWN")
+        blue_spawns = self.map.get_spawning_positions("BLUE_SPAWN")
 
         for player in self.players_red:
             player.position = red_spawns.pop(0)
 
         for player in self.players_blue:
             player.position = blue_spawns.pop(0)
+
+        self.players = [
+            item for pair in zip(self.players_red, self.players_blue) for item in pair
+        ]
 
     def spawn_orbs(self):
         meta_orb_position = self.map.get_meta_orb_spawn_position()
@@ -68,12 +69,12 @@ class Game:
 
         for player in self.players_red:
             position_data.append(
-                {"team": "RED", "name": player.name, "position": player.position}
+                {"team": player.team, "name": player.name, "position": player.position}
             )
 
         for player in self.players_blue:
             position_data.append(
-                {"team": "BLU", "name": player.name, "position": player.position}
+                {"team": player.team, "name": player.name, "position": player.position}
             )
 
         return position_data
