@@ -17,4 +17,5 @@ for player in PLAYERS_BLUE:
 
 game = Game(test_map_name, players_red, players_blue)
 game.spawn_players()
-game.show_map(tile_size=30)
+game.spawn_orbs()
+game.run_game_loop()

@@ -6,7 +6,7 @@ SOURCE_FOLDER: str = "assets/maps/"
 COLOR_MAPPING: dict[tuple[int, int, int], str] = {
     (0, 0, 0): "WAL",  # WALL
     (255, 255, 255): "FLR",  # FLOOR
-    (118, 66, 138): "ORB",  # ORB
+    (118, 66, 138): "ORS",  # ORB SPAWN
     (172, 50, 50): "RED",  # START RED
     (99, 155, 255): "BLU",  # START BLUE
 }
@@ -53,3 +53,15 @@ class Map:
         positions = np.argwhere(self.tiles == team_code)
         print(positions)
         return [(pos[1], pos[0]) for pos in positions]
+
+    def get_meta_orb_spawn_position(self) -> tuple[int, int]:
+        """Get the spawn position for the Meta Orb"""
+        if self.tiles is None:
+            return (0, 0)
+
+        positions = np.argwhere(self.tiles == "ORS")
+        if positions.size == 0:
+            return (0, 0)  # Default position if none found
+
+        pos = positions[0]
+        return (pos[1], pos[0])
