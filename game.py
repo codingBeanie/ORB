@@ -5,7 +5,7 @@ from meta_orb import MetaOrb
 import time
 import arcade
 
-TICK_DELAY = 0.2
+TICK_DELAY = 0.1
 MAX_TICKS = 100
 
 
@@ -29,15 +29,17 @@ class Game:
 
     def process_tick(self):
         """Called by viewer every tick - handles all game logic"""
-        if not self.running or self.tick >= MAX_TICKS:
+        self.tick += 1
+        if not self.running:
+            return
+
+        if self.tick > MAX_TICKS and self.running:
             self.running = False
             if hasattr(self, "viewer"):
                 self.viewer.add_message("Game finished!")
-            return
+                return
 
-        self.tick += 1
-
-        # Add message to viewer
+        # Game continues
         if hasattr(self, "viewer"):
             self.viewer.add_message(f"Tick {self.tick}: Game continues...")
 
@@ -46,11 +48,6 @@ class Game:
         # - Update game state
         # - Check win conditions
         # - etc.
-
-        if self.tick >= MAX_TICKS and self.running:
-            self.running = False
-            if hasattr(self, "viewer"):
-                self.viewer.add_message("Game finished!")
 
     def spawn_players(self):
         red_spawns = self.map.get_spawning_positions("RED")
