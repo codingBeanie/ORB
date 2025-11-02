@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image
 from PIL.Image import Image as PILImage
 import config
-import entities
+import game_objects.entities as entities
 
 
 class Map:
@@ -44,6 +44,30 @@ class Map:
         """Get all coordinates of fields with a specific tile name"""
         positions = []
         for field in self.fields:
-            if field.tile.name == tile_name:
+            if field.tile and field.tile.name == tile_name:
                 positions.append((field.x, field.y))
+        return positions
+
+    def get_field_by_coordinates(self, x: int, y: int) -> entities.Field | None:
+        """Get the field at specific coordinates"""
+        for field in self.fields:
+            if field.x == x and field.y == y:
+                return field
+        return None
+
+    def get_possible_moves(self, position: tuple[int, int]) -> list[tuple[int, int]]:
+        """Get all possible move coordinates from a given position"""
+        x, y = position
+        possible_moves = [
+            (x + 1, y),
+            (x - 1, y),
+            (x, y + 1),
+            (x, y - 1),
+        ]
+        positions = []
+        for move in possible_moves:
+            for field in self.fields:
+                if field.x == move[0] and field.y == move[1]:  # is it on the map?
+                    if field.tile and field.tile.passable:  # is it passable?
+                        positions.append(move)
         return positions

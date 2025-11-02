@@ -1,8 +1,6 @@
 import arcade
-from map import Map
-import time
 import config
-import entities
+import game_objects.entities as entities
 
 
 class MapViewer(arcade.Window):
@@ -52,68 +50,74 @@ class MapViewer(arcade.Window):
     def on_draw(self):
         self.clear()
         self.draw_map()
-        self.draw_players()
-        self.draw_meta_orb()
         self.draw_message_box()
 
     def draw_map(self):
+
         if self.fields is None:
             return
 
         for field in self.fields:
-            pixel_x: int = field.x * self.tile_size
-            pixel_y: int = field.y * self.tile_size + self.message_box_height
+            self.draw_tile(field)
 
-            # Draw filled rectangle directly
-            arcade.draw_lbwh_rectangle_filled(
-                pixel_x,  # Left
-                pixel_y,  # Bottom
-                self.tile_size - 1,  # Width (with 1px border)
-                self.tile_size - 1,  # Height (with 1px border)
-                field.tile.display_color or (128, 128, 128),  # Default gray if None
-            )
+            if field.player is not None:
+                self.draw_player(field)
 
-    def draw_players(self):
+            if field.meta_orb is not None:
+                self.draw_meta_orb(field)
+
+    def draw_tile(self, field: entities.Field):
+        pixel_x: int = field.x * self.tile_size
+        pixel_y: int = field.y * self.tile_size + self.message_box_height
+
+        # Draw filled rectangle directly
+        arcade.draw_lbwh_rectangle_filled(
+            pixel_x,  # Left
+            pixel_y,  # Bottom
+            self.tile_size - 1,  # Width (with 1px border)
+            self.tile_size - 1,  # Height (with 1px border)
+            field.tile.display_color,
+        )
+
+    def draw_player(self, field: entities.Field):
         # Draw players
-        if self.fields is None:
+        if field.player is None:
             return
-        for player in self.game.player_list:
-            pixel_x: int = player.position[0] * self.tile_size
-            pixel_y: int = player.position[1] * self.tile_size + self.message_box_height
-            team_color = entities.get_color_by_game_object_name(
-                "RED_PLAYER" if player.team == "RED" else "BLUE_PLAYER"
-            )
-            # Draw filled rectangle directly
-            arcade.draw_circle_filled(
-                pixel_x + self.tile_size // 2,  # Center X
-                pixel_y + self.tile_size // 2,  # Center Y
-                self.tile_size // 3,  # Radius
-                team_color,  # Player color
-            )
-            # Draw player name
-            arcade.draw_text(
-                player.name,
-                pixel_x + self.tile_size // 2,
-                pixel_y - 1,
-                arcade.color.WHITE,
-                font_size=config.PLAYER_TAG_SIZE,
-                anchor_x="center",
-            )
+        pixel_x: int = field.x * self.tile_size
+        pixel_y: int = field.y * self.tile_size + self.message_box_height
+        team_color = field.player.display_color
 
-    def draw_meta_orb(self):
+        # Draw filled rectangle directly
+        arcade.draw_circle_filled(
+            pixel_x + self.tile_size // 2,  # Center X
+            pixel_y + self.tile_size // 2,  # Center Y
+            self.tile_size // 3,  # Radius
+            team_color,  # Player color
+        )
+
+        # Draw player name
+        arcade.draw_text(
+            field.player.name,
+            pixel_x + self.tile_size // 2,
+            pixel_y - 1,
+            arcade.color.WHITE,
+            font_size=config.PLAYER_TAG_SIZE,
+            anchor_x="center",
+        )
+
+    def draw_meta_orb(self, field: entities.Field):
         """Draw the Meta Orb on the map"""
-        if self.fields is None:
+        if field.meta_orb is None:
             return
-        orb_position = self.game.map.get_coordinates_by_tile_name("ORB_SPAWN")[0]
-        pixel_x = orb_position[0] * self.tile_size
-        pixel_y = orb_position[1] * self.tile_size + self.message_box_height
-        color = entities.get_color_by_game_object_name("META_ORB")
+
+        pixel_x: int = field.x * self.tile_size
+        pixel_y: int = field.y * self.tile_size + self.message_box_height
 
         arcade.draw_circle_filled(
             pixel_x + self.tile_size // 2,
             pixel_y + self.tile_size // 2,
             self.tile_size // 3,
-            color,
+            field.meta_orb.display_color,
         )
         # Draw orb border
         arcade.draw_circle_outline(

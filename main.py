@@ -1,5 +1,5 @@
 from game import Game
-from player import Player
+from game_objects.player import Player
 import config
 
 
@@ -16,5 +16,5 @@ for player in config.PLAYERS_BLUE:
 
 game = Game(test_map_name, players_red, players_blue)
 game.spawn_players()
-# game.spawn_orbs()
+game.spawn_meta_orb()
 game.run_game_loop()

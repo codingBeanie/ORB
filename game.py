@@ -1,7 +1,7 @@
 from map import Map
-from player import Player
+from game_objects.player import Player
 from viewer import MapViewer
-from meta_orb import MetaOrb
+from game_objects.meta_orb import MetaOrb
 import config
 
 
@@ -35,10 +35,29 @@ class Game:
         blue_spawn_points = self.map.get_coordinates_by_tile_name("BLUE_SPAWN")
 
         for i, player in enumerate(self.players_red):
-            player.position = red_spawn_points[i]
+            field = self.map.get_field_by_coordinates(
+                red_spawn_points[i][0], red_spawn_points[i][1]
+            )
+            if field is not None:
+                field.player = player
 
         for i, player in enumerate(self.players_blue):
-            player.position = blue_spawn_points[i]
+            field = self.map.get_field_by_coordinates(
+                blue_spawn_points[i][0], blue_spawn_points[i][1]
+            )
+            if field is not None:
+                field.player = player
+
+    def spawn_meta_orb(self):
+        """Spawn the Meta Orb on the map"""
+        orb_spawn_points = self.map.get_coordinates_by_tile_name("ORB_SPAWN")
+        if not orb_spawn_points:
+            return  # No spawn points available
+
+        orb_position = orb_spawn_points[0]
+        field = self.map.get_field_by_coordinates(orb_position[0], orb_position[1])
+        if field is not None:
+            field.meta_orb = MetaOrb()
 
     def run_game_loop(self):
         self.running = True
@@ -57,6 +76,10 @@ class Game:
             if hasattr(self, "viewer"):
                 self.viewer.add_message("Game finished!")
                 return
+
+        # Check for player movements
+        for player in self.player_list:
+            pass
 
         # Game continues
         if hasattr(self, "viewer"):
