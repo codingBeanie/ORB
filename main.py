@@ -1,18 +1,18 @@
 from game import Game
 from game_objects.player import Player
 import config
-
+from ai.strategy import StrategyStraightOrb
 
 # specify map name
 test_map_name: str = "the_petting_zoo"
 
 players_red: list[Player] = []
 for player in config.PLAYERS_RED:
-    players_red.append(Player(player, "RED"))
+    players_red.append(Player(player, "RED", StrategyStraightOrb()))
 
 players_blue: list[Player] = []
 for player in config.PLAYERS_BLUE:
-    players_blue.append(Player(player, "BLUE"))
+    players_blue.append(Player(player, "BLUE", StrategyStraightOrb()))
 
 game = Game(test_map_name, players_red, players_blue)
 game.spawn_players()

@@ -31,8 +31,8 @@ class Game:
 
     def spawn_players(self):
         """Spawn all players on the map"""
-        red_spawn_points = self.map.get_coordinates_by_tile_name("RED_SPAWN")
-        blue_spawn_points = self.map.get_coordinates_by_tile_name("BLUE_SPAWN")
+        red_spawn_points = self.map.get_positions_by_tile_name("RED_SPAWN")
+        blue_spawn_points = self.map.get_positions_by_tile_name("BLUE_SPAWN")
 
         for i, player in enumerate(self.players_red):
             field = self.map.get_field_by_coordinates(
@@ -50,7 +50,7 @@ class Game:
 
     def spawn_meta_orb(self):
         """Spawn the Meta Orb on the map"""
-        orb_spawn_points = self.map.get_coordinates_by_tile_name("ORB_SPAWN")
+        orb_spawn_points = self.map.get_positions_by_tile_name("ORB_SPAWN")
         if not orb_spawn_points:
             return  # No spawn points available
 
@@ -58,6 +58,7 @@ class Game:
         field = self.map.get_field_by_coordinates(orb_position[0], orb_position[1])
         if field is not None:
             field.meta_orb = MetaOrb()
+            self.map.position_orb = orb_position
 
     def run_game_loop(self):
         self.running = True
@@ -77,9 +78,9 @@ class Game:
                 self.viewer.add_message("Game finished!")
                 return
 
-        # Check for player movements
+        # each player takes an action
         for player in self.player_list:
-            pass
+            player.take_action(self.map)
 
         # Game continues
         if hasattr(self, "viewer"):
