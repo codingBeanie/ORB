@@ -5,9 +5,10 @@ import config
 import game_objects.entities as entities
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
+from game_objects.meta_orb import MetaOrb
 
 
-class Map:
+class Arena:
     def __init__(self, map_name: str):
         self.name: str = map_name
         self.image: PILImage | None = None
@@ -15,7 +16,6 @@ class Map:
         self.image_dimensions: tuple[int, int] | None = None
 
         self.fields: list[entities.Field] = []
-        self.position_orb: tuple[int, int] | None = None
         self.positions_red_spawn: list[tuple[int, int]] = []
         self.positions_blue_spawn: list[tuple[int, int]] = []
         self.pathfinding_matrix: np.ndarray | None = None
@@ -106,29 +106,48 @@ class Map:
         next_step_position = (next_step.x, next_step.y)  # type: ignore
         return next_step_position
 
-    def get_possible_moves(
+    def get_meta_orb_position(self) -> tuple[int, int] | None:
+        """Get the current position of the Meta Orb on the map"""
+        for field in self.fields:
+            if field.meta_orb is not None:
+                return (field.x, field.y)
+        return None
+
+    def change_meta_orb_position(self, new_position: tuple[int, int]) -> None:
+        """Change the position of the Meta Orb on the map"""
+        meta_orb = self.get_meta_orb_object()
+        # First, remove the orb from its current position
+        for field in self.fields:
+            if field.meta_orb is not None:
+                field.meta_orb = None
+                break
+
+        # Then, place the orb at the new position
+        field = self.get_field_by_coordinates(new_position[0], new_position[1])
+        if field is not None:
+            field.meta_orb = meta_orb
+
+    def get_meta_orb_object(self) -> MetaOrb | None:
+        """Get the current status of the Meta Orb on the map"""
+        for field in self.fields:
+            if field.meta_orb is not None:
+                return field.meta_orb
+        return None
+
+    def get_passable_adjacent_positions(
         self, position: tuple[int, int]
-    ) -> list[tuple[int, int]] | None:
-        """Get all possible move coordinates from a given position"""
+    ) -> list[tuple[int, int]]:
+        """Get all passable adjacent positions (up, down, left, right) from a given position"""
         x, y = position
-        possible_moves = [
-            (x + 1, y),
-            (x - 1, y),
-            (x, y + 1),
-            (x, y - 1),
+        adjacent_positions = [
+            (x, y + 1),  # Up
+            (x, y - 1),  # Down
+            (x - 1, y),  # Left
+            (x + 1, y),  # Right
         ]
-        positions = []
-        for move in possible_moves:
-            for field in self.fields:
-                if field.x == move[0] and field.y == move[1]:  # get field
-
-                    # field is not passable
-                    if not field.tile.passable:
-                        break
-
-                    # field is occupied by another player
-                    if field.player is not None:
-                        break
-
-                    positions.append(move)
-        return positions
+        passable_positions = []
+        for pos in adjacent_positions:
+            field = self.get_field_by_coordinates(pos[0], pos[1])
+            if field and field.tile.passable and field.player is None:
+                passable_positions.append(pos)
+        return passable_positions

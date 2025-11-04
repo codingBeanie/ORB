@@ -18,9 +18,14 @@ class MapViewer(arcade.Window):
         self.message_box_height: int = config.MESSAGE_BOX_HEIGHT
         self.message_box_margin: int = config.MESSAGE_BOX_MARGIN
 
+        # Scoring board area
+        self.scoring_board_height: int = config.SCORING_BOARD_HEIGHT
+
         # Total window size
         width: int = self.map_width
-        height: int = self.map_height + self.message_box_height
+        height: int = (
+            self.map_height + self.message_box_height + self.scoring_board_height
+        )
 
         super().__init__(width, height, "GAME OF ORB")
         arcade.set_background_color(arcade.color.BLACK)
@@ -51,6 +56,7 @@ class MapViewer(arcade.Window):
         self.clear()
         self.draw_map()
         self.draw_message_box()
+        self.draw_scoring_board()
 
     def draw_map(self):
 
@@ -128,6 +134,57 @@ class MapViewer(arcade.Window):
             3,  # Border thickness
         )
 
+    def draw_scoring_board(self):
+        """Draw the scoring board at the top of the screen"""
+        # Scoring board background
+        arcade.draw_lbwh_rectangle_filled(
+            0,  # Left
+            self.map_height + self.message_box_height,  # Bottom
+            self.map_width,  # Width
+            self.scoring_board_height,  # Height
+            (50, 50, 50),  # Darker gray background
+        )
+
+        # Scoring board border
+        arcade.draw_lbwh_rectangle_outline(
+            0,
+            self.map_height + self.message_box_height,
+            self.map_width,
+            self.scoring_board_height,
+            arcade.color.WHITE,
+            2,
+        )
+
+        # Calculate vertical center of scoring board
+        scoring_board_y_center = (
+            self.map_height + self.message_box_height + (self.scoring_board_height // 2)
+        )
+
+        # Draw tick count (left side with margin)
+        arcade.draw_text(
+            f"Tick: {self.game.tick}",
+            20,  # Left margin
+            scoring_board_y_center,
+            arcade.color.WHITE,
+            font_size=14,
+            anchor_x="left",
+            anchor_y="center",
+        )
+
+        # Draw team scores (centered)
+        score_red = getattr(self.game, "score_red", 0)
+        score_blue = getattr(self.game, "score_blue", 0)
+
+        arcade.draw_text(
+            f"RED {score_red} : {score_blue} BLUE",
+            self.map_width // 2,  # Horizontal center
+            scoring_board_y_center,  # Vertical center
+            arcade.color.WHITE,
+            font_size=16,
+            anchor_x="center",
+            anchor_y="center",
+        )
+
     def draw_message_box(self):
         """Draw the message box at the bottom of the screen"""
         # Message box background
@@ -168,8 +225,3 @@ class MapViewer(arcade.Window):
                 arcade.color.WHITE,
                 font_size=font_size,
             )
-
-    def add_message(self, message: str):
-        """Add a new message to the message box"""
-        self.messages.append(message)
-        print(f"[MESSAGE] {message}")  # Also print to console

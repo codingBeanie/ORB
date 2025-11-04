@@ -1,4 +1,4 @@
-from map import Map
+from arena import Arena
 from game_objects.player import Player
 from viewer import MapViewer
 from game_objects.meta_orb import MetaOrb
@@ -12,7 +12,7 @@ class Game:
         players_red: list[Player] | None = None,
         players_blue: list[Player] | None = None,
     ):
-        self.map = Map(map_name)
+        self.map = Arena(map_name)
         self.players_red = players_red or []
         self.players_blue = players_blue or []
         self.player_list = []
@@ -20,6 +20,8 @@ class Game:
         self.tick = 0
         self.score_red = 0
         self.score_blue = 0
+
+        self.game_messages: list[str] = []
 
         # Interleave red and blue players
         max_players = max(len(self.players_red), len(self.players_blue))
@@ -58,7 +60,6 @@ class Game:
         field = self.map.get_field_by_coordinates(orb_position[0], orb_position[1])
         if field is not None:
             field.meta_orb = MetaOrb()
-            self.map.position_orb = orb_position
 
     def run_game_loop(self):
         self.running = True
@@ -75,13 +76,13 @@ class Game:
         if self.tick > config.MAX_TICKS and self.running:
             self.running = False
             if hasattr(self, "viewer"):
-                self.viewer.add_message("Game finished!")
+                self.game_messages.append("Game finished!")
                 return
 
         # each player takes an action
         for player in self.player_list:
-            player.take_action(self.map)
+            player.take_action(self.map, self)
 
-        # Game continues
+        # set messages for viewer
         if hasattr(self, "viewer"):
-            self.viewer.add_message(f"Tick {self.tick}: Game continues...")
+            self.viewer.messages = self.game_messages.copy()
